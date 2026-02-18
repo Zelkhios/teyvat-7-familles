@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teyvat 7 Familles - Edition Astrale Finale</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root { --gold: #d4af37; --card-w: 80px; --card-h: 112px; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #0b111e;
+            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.jpg'); 
+            background-size: cover; background-attachment: fixed; background-position: center;
+            color: white; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        .menu-box { background: rgba(10, 20, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 350px; box-shadow: 0 0 30px black; }
+        .hidden { display: none !important; }
+        #game-ui { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .status-bar { background: rgba(0,0,0,0.95); width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; width: 100%; }
+        .players-container { display: flex; justify-content: center; gap: 10px; padding: 10px; width: 100%; flex-wrap: wrap; }
+        .player-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.3); text-align: center; min-width: 130px; transition: 0.2s; cursor: pointer; }
+        .player-card.active { border-color: #2ecc71; background: rgba(46, 204, 113, 0.15); }
+        .player-card.targeted { border-color: #e67e22; box-shadow: 0 0 15px #e67e22; }
+        .score-list { font-size: 1.2rem; color: var(--gold); margin-top: 5px; font-weight: bold; }
+        #btn-refus { background: #e74c3c; color: white; padding: 12px 30px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 10px; display: none; }
+        .board { width: 95%; max-width: 1200px; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 20px; border: 1px dashed rgba(212,175,55,0.2); margin-top: 5px; min-height: 150px; }
+        .hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .card { width: var(--card-w); height: var(--card-h); border-radius: 5px; border: 1px solid var(--gold); background-size: cover; position: relative; cursor: pointer; }
+        .card-tag { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); font-size: 0.5rem; text-align: center; padding: 2px 0; pointer-events: none; }
+        #end-screen { background: rgba(10, 20, 35, 0.98); border: 3px solid var(--gold); padding: 40px; border-radius: 30px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; width: 350px; text-align: center; box-shadow: 0 0 100px black; }
+        .rank-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(212,175,55,0.2); font-size: 1.1rem; }
+        button { width: 95%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; background: var(--gold); color: #111; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div id="step-1" class="menu-box">
+        <h1 style="color:var(--gold)">TEYVAT MULTI</h1>
+        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--gold); background: rgba(255,255,255,0.1); color: white; text-align: center;" type="text" id="pseudo-input" placeholder="Pseudo..." maxlength="12">
+        <button onclick="validerPseudo()">ENTRER</button>
+    </div>
+
+    <div id="step-2" class="menu-box hidden">
+        <h2 id="welcome-msg">Bonjour</h2>
+        <button onclick="initHost()">Créer Salon</button>
+        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--gold); background: rgba(255,255,255,0.1); color: white; text-align: center;" type="text" id="join-id-input" placeholder="Code salon">
+        <button onclick="initJoin()">Rejoindre</button>
+    </div>
+
+    <div id="step-3" class="menu-box hidden">
+        <h2>CODE : <span id="my-id-display" style="color:var(--gold); cursor:pointer;" onclick="copierCode()">---</span></h2>
+        <div id="lobby-list" style="margin:20px 0; text-align: left; padding-left: 10%;">
+            <p id="p-row-0">• <span id="p-name-0">...</span> (Hôte)</p>
+            <p id="p-row-1" style="display:none">• <span id="p-name-1">...</span></p>
+            <p id="p-row-2" style="display:none">• <span id="p-name-2">...</span></p>
+            <p id="p-row-3" style="display:none">• <span id="p-name-3">...</span></p>
+        </div>
+        <button id="start-btn" class="hidden" onclick="hostStartGame()">Lancer la partie</button>
+    </div>
+
+    <div id="game-ui" class="hidden">
+        <div class="status-bar">
+            <h2 id="turn-indicator">Initialisation...</h2>
+            <p style="color:var(--gold)">Pioche : <span id="deck-count">0</span></p>
+        </div>
+        <div id="players-ui" class="players-container"></div>
+        <button id="btn-refus" onclick="refuserDemande()">"JE N'AI PAS LA CARTE"</button>
+        <div class="board"><div id="player-hand" class="hand"></div></div>
+    </div>
+
+    <div id="end-screen" class="hidden">
+        <h1 style="color:var(--gold)">FIN DE PARTIE</h1>
+        <div id="ranking-list" style="margin-bottom: 30px;"></div>
+        <button onclick="location.reload()">MENU PRINCIPAL</button>
+    </div>
+
+    <script>
+        const families = {
+            "Mondstadt": ["Venti", "Eula", "Amber", "Lisa", "Diluc", "Jean"],
+            "Liyue": ["Zhongli", "Xiao", "Hu-Tao", "Ganyu", "Shenhe", "Xianyun"],
+            "Inazuma": ["Raiden", "Mizuki", "Ayato", "Ayaka", "Kokomi", "Kazuha"],
+            "Sumeru": ["Nahida", "Alhaitham", "Cyno", "Candace", "Tighnari", "Kaveh"],
+            "Fontaine": ["Furina", "Neuvillette", "Navia", "Lyney", "Lynette", "Clorinde"],
+            "Natlan": ["Mavuika", "Kinich", "Mualani", "Xilonen", "Chasca", "Citlali"],
+            "Nodkrai": ["Columbina", "Ineffa", "Flins", "Nefer", "Aino", "Lauma"],
+            "Khaenriah": ["Kaeya", "Dainsleif", "Rerir", "Albedo", "Arlecchino", "Capitano"],
+            "Astral": ["Skirk", "Asmoday", "Istaroth", "Ronova", "Aether", "Lumine"]
+        };
+
+        let monPseudo = "", myPeerId = "", peer = null, connections = [];
+        let maMain = [], currentDeck = [], players = [], turnIdx = 0, targetId = null, isHost = false;
+
+        function validerPseudo() {
+            const val = document.getElementById('pseudo-input').value.trim();
+            if(val) { monPseudo = val; document.getElementById('p-name-0').innerText = monPseudo; document.getElementById('step-1').style.display = 'none'; document.getElementById('step-2').classList.remove('hidden'); }
+        }
+
+        function copierCode() { navigator.clipboard.writeText(document.getElementById('my-id-display').innerText); alert("Code copié !"); }
+
+        function initHost() {
+            isHost = true;
+            myPeerId = Math.random().toString(36).substring(2,7).toUpperCase();
+            peer = new Peer(myPeerId);
+            players = [{ id: myPeerId, name: monPseudo, count: 0, won: [] }];
+            peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); });
+            peer.on('connection', setupConn);
+        }
+
+        function initJoin() {
+            isHost = false;
+            const code = document.getElementById('join-id-input').value.toUpperCase().trim();
+            peer = new Peer();
+            peer.on('open', (id) => { myPeerId = id; setupConn(peer.connect(code)); document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); });
+        }
+
+        function setupConn(conn) {
+            conn.on('open', () => {
+                if(isHost) connections.push(conn); else connections = [conn];
+                conn.send({ type: 'JOIN', name: monPseudo });
+                conn.on('data', (data) => {
+                    if(data.type === 'JOIN' && isHost) {
+                        players.push({ id: conn.peer, name: data.name, count: 0, won: [] });
+                        updateLobby(); broadcast({ type: 'SYNC_LOBBY', players: players });
+                    }
+                    if(data.type === 'SYNC_LOBBY') { players = data.players; updateLobby(); }
+                    if(data.type === 'START') { maMain = data.hand; players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; goGame(); }
+                    if(data.type === 'SYNC_GAME') {
+                        players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; targetId = data.targetId;
+                        updateUI(); checkEnd();
+                    }
+                    if(data.type === 'DRAW') {
+                        currentDeck = data.deck;
+                        if(data.to === myPeerId) { maMain.push(data.card); checkScore(false); }
+                        updateUI();
+                    }
+                    if(data.type === 'GET_CARD') {
+                        if(data.to === myPeerId) { maMain.push(data.card); checkScore(true); }
+                        updateUI();
+                    }
+                    if(data.type === 'CLIENT_REFUS' && isHost) refuserDemande();
+                });
+            });
+        }
+
+        function broadcast(msg) { connections.forEach(c => c.send(msg)); }
+
+        function updateLobby() {
+            players.forEach((p, i) => {
+                const row = document.getElementById(`p-row-${i}`);
+                if(row) { row.style.display = 'block'; document.getElementById(`p-name-${i}`).innerText = p.name; }
+            });
+            if(isHost) document.getElementById('start-btn').classList.toggle('hidden', players.length < 2);
+        }
+
+        function hostStartGame() {
+            let fullDeck = [];
+            let idCounter = 1;
+            for(let f in families) { families[f].forEach(n => { fullDeck.push({id: idCounter++, f, n}); }); }
+            fullDeck.sort(() => Math.random() - 0.5);
+            turnIdx = Math.floor(Math.random() * players.length);
+            players.forEach((p, i) => {
+                p.won = [];
+                const hand = fullDeck.splice(0, players.length > 2 ? 6 : 8);
+                p.count = hand.length;
+                if(i === 0) maMain = hand;
+                else connections.find(c => c.peer === p.id).send({ type: 'START', hand, players, turnIdx, deck: fullDeck });
+            });
+            currentDeck = fullDeck;
+            goGame();
+        }
+
+        function updateUI() {
+            const monTour = players[turnIdx].id === myPeerId;
+            document.getElementById('turn-indicator').innerText = monTour ? "À TOI !" : "TOUR DE " + players[turnIdx].name.toUpperCase();
+            document.getElementById('deck-count').innerText = currentDeck.length;
+            document.getElementById('btn-refus').style.display = (targetId === myPeerId) ? 'block' : 'none';
+
+            const ui = document.getElementById('players-ui');
+            ui.innerHTML = "";
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `player-card ${players[turnIdx].id === p.id ? 'active' : ''} ${targetId === p.id ? 'targeted' : ''}`;
+                div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes<div class="score-list">🏆 ${p.won ? p.won.length : 0}</div>`;
+                if(monTour && p.id !== myPeerId) div.onclick = () => { targetId = p.id; sync(); };
+                ui.appendChild(div);
+            });
+
+            const hand = document.getElementById('player-hand');
+            hand.innerHTML = "";
+            maMain.sort((a,b) => a.f.localeCompare(b.f)).forEach(c => {
+                const card = document.createElement('div'); card.className = "card";
+                const fP = c.f.toLowerCase().replace("'",""), nP = c.n.toLowerCase().replace(" ","-");
+                card.style.backgroundImage = `url('images/${fP}_${nP}.jpg')`;
+                card.onclick = () => { if(targetId === myPeerId) donner(c); };
+                card.innerHTML = `<div class="card-tag"><b>${c.f}</b><br>${c.n}</div>`;
+                hand.appendChild(card);
+            });
+        }
+
+        function refuserDemande() {
+            if (isHost) {
+                if (currentDeck.length > 0) {
+                    const card = currentDeck.shift();
+                    const receiverId = players[turnIdx].id;
+                    if (receiverId === myPeerId) { maMain.push(card); checkScore(false); } 
+                    else { broadcast({ type: 'DRAW', card, deck: currentDeck, to: receiverId }); }
+                }
+                targetId = null; turnIdx = (turnIdx + 1) % players.length; sync();
+            } else { connections[0].send({ type: 'CLIENT_REFUS' }); }
+        }
+
+        function donner(card) {
+            maMain = maMain.filter(c => c.id !== card.id);
+            const msg = { type: 'GET_CARD', card, to: players[turnIdx].id };
+            isHost ? broadcast(msg) : connections[0].send(msg);
+            targetId = null; sync();
+        }
+
+        function checkScore(wasRequested = false) {
+            let win = false;
+            let me = players.find(pl => pl.id === myPeerId);
+            for(let f in families) {
+                const fam = families[f];
+                const hasAll = fam.every(name => maMain.some(c => c.f === f && c.n === name));
+                if(hasAll && !me.won.includes(f)) {
+                    me.won.push(f);
+                    maMain = maMain.filter(c => c.f !== f);
+                    win = true;
+                }
+            }
+            if(win) {
+                if(wasRequested) { turnIdx = (turnIdx + 1) % players.length; }
+                sync(); checkEnd(); 
+            }
+        }
+
+        function checkEnd() {
+            let totalFamilles = 0;
+            let unJoueurVide = false;
+            players.forEach(p => {
+                totalFamilles += (p.won ? p.won.length : 0);
+                if(p.count === 0) unJoueurVide = true;
+            });
+            
+            if(totalFamilles >= 9 || (currentDeck.length === 0 && unJoueurVide)) {
+                setTimeout(() => {
+                    const list = document.getElementById('ranking-list');
+                    list.innerHTML = "";
+                    const classement = [...players].sort((a,b) => (b.won ? b.won.length : 0) - (a.won ? a.won.length : 0));
+                    classement.forEach((p, i) => {
+                        list.innerHTML += `<div class="rank-item"><span>#${i+1} ${p.name}</span><span style="color:var(--gold); font-weight:bold;">${p.won ? p.won.length : 0}🏆</span></div>`;
+                    });
+                    document.getElementById('end-screen').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        function sync() {
+            let me = players.find(p => p.id === myPeerId);
+            me.count = maMain.length;
+            const d = { type: 'SYNC_GAME', players, turnIdx, deck: currentDeck, targetId };
+            isHost ? broadcast(d) : connections[0].send(d);
+            updateUI();
+        }
+
+        function goGame() { document.getElementById('step-3').classList.add('hidden'); document.getElementById('game-ui').classList.remove('hidden'); updateUI(); }
+    </script>
+</body>
+</html>
