@@ -3,71 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teyvat 7 Familles - Edition Finale GitHub</title>
+    <title>Teyvat 7 Familles - ULTIME SYNC</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --gold: #d4af37; --card-w: 80px; --card-h: 112px; }
         body { font-family: 'Segoe UI', sans-serif; background: #0b111e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        .menu-box { background: rgba(10, 20, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 340px; box-shadow: 0 0 30px black; }
+        .menu-box { background: rgba(10, 20, 35, 0.95); padding: 25px; border-radius: 15px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 320px; box-shadow: 0 0 20px black; }
         .hidden { display: none !important; }
         #game-ui { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .status-bar { background: rgba(0,0,0,0.95); width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; width: 100%; }
-        .players-container { display: flex; justify-content: center; gap: 10px; padding: 10px; width: 100%; flex-wrap: wrap; }
-        .player-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.3); text-align: center; min-width: 120px; cursor: pointer; transition: 0.3s; }
-        .player-card.active { border-color: #2ecc71; background: rgba(46, 204, 113, 0.2); }
+        .status-bar { background: rgba(0,0,0,0.9); width: 100%; padding: 15px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; }
+        .players-container { display: flex; justify-content: center; gap: 15px; padding: 15px; flex-wrap: wrap; }
+        .player-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 2px solid #333; text-align: center; min-width: 120px; cursor: pointer; transition: 0.2s; }
+        .player-card.active { border-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
         .player-card.targeted { border-color: #e67e22; box-shadow: 0 0 15px #e67e22; transform: scale(1.05); }
-        .score-val { color: var(--gold); font-weight: bold; font-size: 1.2rem; }
-        #btn-refus { background: #e74c3c; color: white; padding: 15px 30px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px; display: none; font-size: 1.1rem; box-shadow: 0 0 20px red; }
-        .board { width: 95%; max-width: 1200px; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 20px; border: 1px dashed rgba(212,175,55,0.2); margin-top: 10px; min-height: 150px; }
-        .hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-        .card { width: var(--card-w); height: var(--card-h); border-radius: 5px; border: 1px solid var(--gold); background-size: cover; position: relative; cursor: pointer; transition: 0.2s; }
-        .card:hover { transform: translateY(-10px); z-index: 10; border-color: white; }
-        .card-tag { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); font-size: 0.5rem; text-align: center; padding: 2px 0; pointer-events: none; }
-        #end-screen { position: fixed; inset: 0; background: rgba(10, 20, 35, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-        button { width: 95%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; background: var(--gold); color: #111; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        input { width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--gold); background: rgba(255,255,255,0.1); color: white; text-align: center; }
+        #btn-refus { background: #e74c3c; color: white; padding: 20px 40px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 20px; display: none; font-size: 1.2rem; box-shadow: 0 0 20px red; }
+        .hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 20px; }
+        .card { width: var(--card-w); height: var(--card-h); border: 1px solid var(--gold); border-radius: 5px; background-size: cover; position: relative; cursor: pointer; }
+        .card-tag { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); font-size: 0.6rem; text-align: center; padding: 2px 0; }
+        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 5px; background: var(--gold); color: black; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        input { width: 90%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid var(--gold); background: #111; color: white; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="step-1" class="menu-box">
         <h1 style="color:var(--gold)">TEYVAT MULTI</h1>
-        <input type="text" id="pseudo-input" placeholder="Ton Pseudo..." maxlength="12">
-        <button onclick="validerPseudo()">ENTRER</button>
+        <input type="text" id="pseudo-in" placeholder="Ton Pseudo" maxlength="12">
+        <button onclick="savePseudo()">ENTRER</button>
     </div>
 
     <div id="step-2" class="menu-box hidden">
         <h2 id="welcome-msg">Bonjour</h2>
-        <button onclick="initHost()">CRÉER UN SALON</button>
-        <div style="margin: 15px; opacity: 0.5;">— OU —</div>
-        <input type="text" id="join-id-input" placeholder="Code du salon">
-        <button onclick="initJoin()">REJOINDRE</button>
+        <button onclick="startHost()">CRÉER UN SALON</button>
+        <div style="margin:10px; opacity:0.5">OU</div>
+        <input type="text" id="join-in" placeholder="Code Salon">
+        <button onclick="startJoin()">REJOINDRE</button>
     </div>
 
     <div id="step-3" class="menu-box hidden">
-        <h2>CODE : <span id="my-id-display" style="color:var(--gold); cursor:pointer;" onclick="copierCode()">---</span></h2>
-        <div id="lobby-list" style="margin:20px 0; text-align: left; padding-left: 10%;"></div>
-        <button id="start-btn" class="hidden" onclick="hostStartGame()">LANCER LA PARTIE</button>
+        <h2>CODE : <span id="display-id" style="color:var(--gold); cursor:pointer;" onclick="navigator.clipboard.writeText(this.innerText); alert('Copié !')">---</span></h2>
+        <div id="lobby-list" style="margin:15px; text-align: left;"></div>
+        <button id="host-start-btn" class="hidden" onclick="hostLaunch()">LANCER LA PARTIE</button>
     </div>
 
     <div id="game-ui" class="hidden">
         <div class="status-bar">
-            <h2 id="turn-indicator">Initialisation...</h2>
-            <p style="color:var(--gold)">Pioche : <span id="deck-count">0</span> | Familles posées : <span id="total-won">0</span>/9</p>
+            <h2 id="turn-info">Initialisation...</h2>
+            <p style="color:var(--gold)">Pioche : <span id="deck-size">0</span> | Tes trophées : <span id="my-score">0</span></p>
         </div>
-        <div id="players-ui" class="players-container"></div>
-        <center><button id="btn-refus" onclick="clicRefus()">JE N'AI PAS CETTE CARTE</button></center>
-        <div class="board"><div id="player-hand" class="hand"></div></div>
-    </div>
-
-    <div id="end-screen" class="hidden">
-        <h1 style="color:var(--gold); font-size: 3rem;">PARTIE TERMINÉE</h1>
-        <div id="ranking" style="width: 300px; margin-bottom: 30px;"></div>
-        <button onclick="location.reload()" style="width: 200px;">RETOUR AU MENU</button>
+        <div id="players-list-ui" class="players-container"></div>
+        <button id="btn-refus" onclick="onRefusClick()">JE N'AI PAS CETTE CARTE</button>
+        <div id="hand-ui" class="hand"></div>
     </div>
 
     <script>
-        const families = {
+        const fams = {
             "Mondstadt": ["Venti", "Eula", "Amber", "Lisa", "Diluc", "Jean"],
             "Liyue": ["Zhongli", "Xiao", "Hu-Tao", "Ganyu", "Shenhe", "Xianyun"],
             "Inazuma": ["Raiden", "Miko", "Ayato", "Ayaka", "Kokomi", "Kazuha"],
@@ -79,162 +69,153 @@
             "Astral": ["Skirk", "Asmoday", "Istaroth", "Ronova", "Aether", "Lumine"]
         };
 
-        let monPseudo = "", myPeerId = "", peer = null, connections = [];
-        let maMain = [], currentDeck = [], players = [], turnIdx = 0, targetId = null, isHost = false;
+        let myPseudo, myId, peer, isHost = false, connections = [];
+        let maMain = [], players = [], turnIdx = 0, targetId = null, deck = [], myScore = 0;
 
-        function validerPseudo() {
-            monPseudo = document.getElementById('pseudo-input').value.trim();
-            if(monPseudo) { document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); document.getElementById('welcome-msg').innerText = "Bonjour " + monPseudo; }
+        function savePseudo() {
+            myPseudo = document.getElementById('pseudo-in').value.trim();
+            if(myPseudo) { document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); document.getElementById('welcome-msg').innerText = "Salut " + myPseudo; }
         }
 
-        function copierCode() { navigator.clipboard.writeText(document.getElementById('my-id-display').innerText); alert("Code copié !"); }
-
-        function initHost() {
+        function startHost() {
             isHost = true;
-            myPeerId = Math.random().toString(36).substring(2,7).toUpperCase();
-            peer = new Peer(myPeerId);
-            players = [{ id: myPeerId, name: monPseudo, count: 0, won: 0 }];
-            peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); updateLobby(); });
-            peer.on('connection', setupConn);
+            myId = Math.random().toString(36).substring(2,7).toUpperCase();
+            peer = new Peer(myId);
+            players = [{id: myId, name: myPseudo, count: 0, score: 0}];
+            peer.on('open', id => { document.getElementById('display-id').innerText = id; switchS(2, 3); updateLobby(); });
+            peer.on('connection', c => { connections.push(c); setupConn(c); });
+            setInterval(() => { if(isHost && deck.length >= 0) forceSync(); }, 2000);
         }
 
-        function initJoin() {
+        function startJoin() {
             isHost = false;
-            const code = document.getElementById('join-id-input').value.toUpperCase().trim();
+            const code = document.getElementById('join-in').value.toUpperCase().trim();
             peer = new Peer();
-            peer.on('open', (id) => { myPeerId = id; setupConn(peer.connect(code)); document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); });
+            peer.on('open', id => { myId = id; const c = peer.connect(code); connections = [c]; setupConn(c); switchS(2, 3); });
         }
 
-        function setupConn(conn) {
-            conn.on('open', () => {
-                if(isHost) { if(!connections.find(c => c.peer === conn.peer)) connections.push(conn); } 
-                else { connections = [conn]; }
-                conn.send({ type: 'JOIN', name: monPseudo });
-
-                conn.on('data', (data) => {
-                    if(isHost) {
-                        if(data.type === 'JOIN') { players.push({ id: conn.peer, name: data.name, count: 0, won: 0 }); updateLobby(); broadcast({ type: 'SYNC_LOBBY', players }); }
-                        if(data.type === 'CMD_TARGET') { targetId = data.targetId; syncAll(); }
-                        if(data.type === 'CMD_REFUS') { logicRefus(); }
-                        if(data.type === 'CMD_GIVE') { logicTransfer(data.card, data.from, data.to); }
-                        if(data.type === 'CMD_WON') { let p = players.find(x => x.id === data.from); p.won++; syncAll(); }
-                    }
-                    if(data.type === 'SYNC_LOBBY') { players = data.players; updateLobby(); }
-                    if(data.type === 'START') { maMain = data.hand; players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; goGame(); }
-                    if(data.type === 'UPDATE') { players = data.players; turnIdx = data.turnIdx; targetId = data.targetId; currentDeck = data.deck; updateUI(); }
-                    if(data.type === 'GET_CARD') { if(data.to === myPeerId) { maMain.push(data.card); checkScore(); } }
+        function setupConn(c) {
+            c.on('open', () => {
+                c.send({type: 'JOIN', name: myPseudo});
+                c.on('data', data => {
+                    if(isHost) handleHostData(data, c);
+                    else handleClientData(data);
                 });
             });
         }
 
-        function broadcast(msg) { connections.forEach(c => { if(c.open) c.send(msg); }); }
+        function handleHostData(data, c) {
+            if(data.type === 'JOIN') { players.push({id: c.peer, name: data.name, count: 0, score: 0}); updateLobby(); broadcast({type: 'LOBBY', players}); }
+            if(data.type === 'TARGET') { targetId = data.targetId; forceSync(); }
+            if(data.type === 'REFUS') { logicRefus(); }
+            if(data.type === 'GIVE') { logicTransfer(data.card, data.from, data.to); }
+            if(data.type === 'WIN_POINT') { players.find(p => p.id === data.from).score++; forceSync(); }
+        }
 
-        function syncAll() {
+        function handleClientData(data) {
+            if(data.type === 'LOBBY') { players = data.players; updateLobby(); }
+            if(data.type === 'START') { maMain = data.hand; players = data.players; deck = data.deck; go(); }
+            if(data.type === 'SYNC') { players = data.players; turnIdx = data.turnIdx; targetId = data.targetId; deck = data.deck; render(); }
+            if(data.type === 'ADD') { maMain.push(data.card); checkScore(); render(); }
+        }
+
+        function broadcast(msg) { connections.forEach(c => c.open && c.send(msg)); }
+
+        function forceSync() {
             if(!isHost) return;
-            players.find(p => p.id === myPeerId).count = maMain.length;
-            broadcast({ type: 'UPDATE', players, turnIdx, targetId, deck: currentDeck });
-            updateUI();
+            players.find(p => p.id === myId).count = maMain.length;
+            broadcast({type: 'SYNC', players, turnIdx, targetId, deck});
+            render();
         }
 
-        function hostStartGame() {
-            let fullDeck = [];
-            for(let f in families) families[f].forEach(n => fullDeck.push({f, n, id: Math.random()}));
-            fullDeck.sort(() => Math.random() - 0.5);
+        function hostLaunch() {
+            let full = [];
+            for(let f in fams) fams[f].forEach(n => full.push({f, n, i: Math.random()}));
+            full.sort(() => Math.random() - 0.5);
             players.forEach((p, i) => {
-                const hand = fullDeck.splice(0, 6);
-                p.count = hand.length;
-                if(i === 0) maMain = hand;
-                else connections.find(c => c.peer === p.id).send({ type: 'START', hand, players, turnIdx: 0, deck: fullDeck });
+                const h = full.splice(0, 6);
+                p.count = 6;
+                if(i === 0) maMain = h;
+                else connections.find(c => c.peer === p.id).send({type: 'START', hand: h, players, deck: full});
             });
-            currentDeck = fullDeck; turnIdx = 0; goGame(); syncAll();
+            deck = full; turnIdx = 0; go(); forceSync();
         }
 
-        function updateUI() {
-            const monTour = players[turnIdx] && players[turnIdx].id === myPeerId;
-            document.getElementById('turn-indicator').innerText = monTour ? "À TOI !" : "TOUR DE " + (players[turnIdx] ? players[turnIdx].name.toUpperCase() : "...");
-            document.getElementById('deck-count').innerText = currentDeck.length;
-            document.getElementById('btn-refus').style.display = (targetId === myPeerId) ? 'block' : 'none';
-            
-            let total = 0; players.forEach(p => total += p.won);
-            document.getElementById('total-won').innerText = total;
+        function render() {
+            const monTour = players[turnIdx]?.id === myId;
+            document.getElementById('turn-info').innerText = monTour ? "C'EST TON TOUR !" : "TOUR DE " + players[turnIdx]?.name.toUpperCase();
+            document.getElementById('btn-refus').style.display = (targetId === myId) ? 'block' : 'none';
+            document.getElementById('deck-size').innerText = deck.length;
 
-            const ui = document.getElementById('players-ui'); ui.innerHTML = "";
+            const list = document.getElementById('players-list-ui'); list.innerHTML = "";
             players.forEach(p => {
                 const div = document.createElement('div');
-                div.className = `player-card ${players[turnIdx].id === p.id ? 'active' : ''} ${targetId === p.id ? 'targeted' : ''}`;
-                div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes<br><span class="score-val">🏆 ${p.won}</span>`;
-                if(monTour && p.id !== myPeerId && !targetId) div.onclick = () => { if(isHost) { targetId = p.id; syncAll(); } else connections[0].send({ type: 'CMD_TARGET', targetId: p.id }); };
-                ui.appendChild(div);
+                div.className = `player-card ${p.id === players[turnIdx].id ? 'active' : ''} ${p.id === targetId ? 'targeted' : ''}`;
+                div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes<br>🏆 ${p.score}`;
+                if(monTour && p.id !== myId && !targetId) div.onclick = () => { 
+                    targetId = p.id; if(isHost) forceSync(); else connections[0].send({type: 'TARGET', targetId: p.id});
+                };
+                list.appendChild(div);
             });
 
-            const hand = document.getElementById('player-hand'); hand.innerHTML = "";
+            const hand = document.getElementById('hand-ui'); hand.innerHTML = "";
             maMain.sort((a,b) => a.f.localeCompare(b.f)).forEach(c => {
                 const div = document.createElement('div'); div.className = "card";
-                div.style.backgroundImage = `url('images/${c.f.toLowerCase()}_${c.n.toLowerCase().replace(" ","-")}.jpg')`;
-                div.onclick = () => { if(targetId === myPeerId) actionDonner(c); };
+                const imgPath = `images/${c.f.toLowerCase()}_${c.n.toLowerCase().replace(/ /g, "-")}.jpg`;
+                div.style.backgroundImage = `url('${imgPath}')`;
+                div.onclick = () => { if(targetId === myId) giveCard(c); };
                 div.innerHTML = `<div class="card-tag"><b>${c.f}</b><br>${c.n}</div>`;
                 hand.appendChild(div);
             });
-            if(total >= 9) showEnd();
         }
 
-        function clicRefus() { if(isHost) logicRefus(); else connections[0].send({ type: 'CMD_REFUS' }); }
+        function onRefusClick() { if(isHost) logicRefus(); else connections[0].send({type: 'REFUS'}); }
 
         function logicRefus() {
-            if(currentDeck.length > 0) {
-                const card = currentDeck.shift();
-                const pId = players[turnIdx].id;
-                if(pId === myPeerId) { maMain.push(card); checkScore(); }
-                else broadcast({ type: 'GET_CARD', card, to: pId });
+            if(deck.length > 0) {
+                const c = deck.shift();
+                const toId = players[turnIdx].id;
+                if(toId === myId) { maMain.push(c); checkScore(); }
+                else connections.find(x => x.peer === toId).send({type: 'ADD', card: c});
             }
-            targetId = null; turnIdx = (turnIdx + 1) % players.length; syncAll();
+            targetId = null; turnIdx = (turnIdx + 1) % players.length; forceSync();
         }
 
-        function actionDonner(card) {
-            maMain = maMain.filter(c => c.id !== card.id);
-            if(isHost) logicTransfer(card, myPeerId, players[turnIdx].id);
-            else connections[0].send({ type: 'CMD_GIVE', card, from: myPeerId, to: players[turnIdx].id });
-            updateUI();
+        function giveCard(c) {
+            maMain = maMain.filter(x => x.i !== c.i);
+            if(isHost) logicTransfer(c, myId, players[turnIdx].id);
+            else connections[0].send({type: 'GIVE', card: c, from: myId, to: players[turnIdx].id});
+            render();
         }
 
-        function logicTransfer(card, fromId, toId) {
-            players.find(p => p.id === fromId).count--;
-            players.find(p => p.id === toId).count++;
+        function logicTransfer(card, from, to) {
+            players.find(p => p.id === from).count--;
+            players.find(p => p.id === to).count++;
             targetId = null;
-            if(toId === myPeerId) { maMain.push(card); checkScore(); }
-            else broadcast({ type: 'GET_CARD', card, to: toId });
-            syncAll();
+            if(to === myId) { maMain.push(card); checkScore(); }
+            else connections.find(x => x.peer === to).send({type: 'ADD', card: card});
+            forceSync();
         }
 
         function checkScore() {
-            for(let f in families) {
-                const fam = families[f];
-                const hasAll = fam.every(name => maMain.some(c => c.f === f && c.n === name));
-                if(hasAll) {
+            for(let f in fams) {
+                const has = maMain.filter(c => c.f === f);
+                if(has.length === 6) {
                     maMain = maMain.filter(c => c.f !== f);
-                    if(isHost) { players.find(p => p.id === myPeerId).won++; syncAll(); }
-                    else { connections[0].send({ type: 'CMD_WON', from: myPeerId }); updateUI(); }
+                    myScore++;
+                    document.getElementById('my-score').innerText = myScore;
+                    if(isHost) { players.find(p => p.id === myId).score = myScore; forceSync(); }
+                    else connections[0].send({type: 'WIN_POINT', from: myId});
                 }
             }
         }
 
         function updateLobby() {
-            const list = document.getElementById('lobby-list'); list.innerHTML = "";
-            players.forEach(p => list.innerHTML += `<p>• ${p.name} ${p.id === myPeerId ? '(Toi)' : ''}</p>`);
-            if(isHost) document.getElementById('start-btn').classList.toggle('hidden', players.length < 2);
+            document.getElementById('lobby-list').innerHTML = players.map(p => `• ${p.name}`).join('<br>');
+            if(isHost && players.length >= 2) document.getElementById('host-start-btn').classList.remove('hidden');
         }
-
-        function goGame() { document.getElementById('step-3').classList.add('hidden'); document.getElementById('game-ui').classList.remove('hidden'); updateUI(); }
-
-        function showEnd() {
-            const end = document.getElementById('end-screen');
-            const rank = document.getElementById('ranking');
-            rank.innerHTML = "";
-            players.sort((a,b) => b.won - a.won).forEach((p, i) => {
-                rank.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--gold)"><span>#${i+1} ${p.name}</span><span>${p.won} 🏆</span></div>`;
-            });
-            end.classList.remove('hidden');
-        }
+        function switchS(o, n) { document.getElementById('step-'+o).classList.add('hidden'); document.getElementById('step-'+n).classList.remove('hidden'); }
+        function go() { document.getElementById('step-3').classList.add('hidden'); document.getElementById('game-ui').classList.remove('hidden'); render(); }
     </script>
 </body>
 </html>
