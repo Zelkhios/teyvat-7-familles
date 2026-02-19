@@ -17,7 +17,7 @@
         .menu-box { background: rgba(10, 20, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 350px; box-shadow: 0 0 30px black; }
         .hidden { display: none !important; }
         #game-ui { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .status-bar { background: rgba(0,0,0,0.95); width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; width: 100%; }
+        .status-bar { background: rgba(0,0,0,0.95); width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; }
         .players-container { display: flex; justify-content: center; gap: 10px; padding: 10px; width: 100%; flex-wrap: wrap; }
         .player-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.3); text-align: center; min-width: 130px; transition: 0.2s; cursor: pointer; }
         .player-card.active { border-color: #2ecc71; background: rgba(46, 204, 113, 0.15); }
@@ -125,17 +125,21 @@
                     }
                     if(data.type === 'SYNC_LOBBY') { players = data.players; updateLobby(); }
                     if(data.type === 'START') { maMain = data.hand; players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; goGame(); }
+                    
                     if(data.type === 'SYNC_GAME') {
                         players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; targetId = data.targetId;
+                        if(isHost) broadcast(data); // L'hôte propage le changement à tout le monde
                         updateUI(); checkEnd();
                     }
                     if(data.type === 'DRAW') {
                         currentDeck = data.deck;
                         if(data.to === myPeerId) { maMain.push(data.card); checkScore(false); }
+                        if(isHost) broadcast(data);
                         updateUI();
                     }
                     if(data.type === 'GET_CARD') {
                         if(data.to === myPeerId) { maMain.push(data.card); checkScore(true); }
+                        if(isHost) broadcast(data);
                         updateUI();
                     }
                     if(data.type === 'CLIENT_REFUS' && isHost) refuserDemande();
@@ -143,7 +147,7 @@
             });
         }
 
-        function broadcast(msg) { connections.forEach(c => c.send(msg)); }
+        function broadcast(msg) { connections.forEach(c => { if(c.open) c.send(msg); }); }
 
         function updateLobby() {
             players.forEach((p, i) => {
@@ -174,6 +178,8 @@
             const monTour = players[turnIdx].id === myPeerId;
             document.getElementById('turn-indicator').innerText = monTour ? "À TOI !" : "TOUR DE " + players[turnIdx].name.toUpperCase();
             document.getElementById('deck-count').innerText = currentDeck.length;
+            
+            // Correction : Le bouton s'affiche bien si on est la cible
             document.getElementById('btn-refus').style.display = (targetId === myPeerId) ? 'block' : 'none';
 
             const ui = document.getElementById('players-ui');
@@ -182,7 +188,11 @@
                 const div = document.createElement('div');
                 div.className = `player-card ${players[turnIdx].id === p.id ? 'active' : ''} ${targetId === p.id ? 'targeted' : ''}`;
                 div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes<div class="score-list">🏆 ${p.won ? p.won.length : 0}</div>`;
-                if(monTour && p.id !== myPeerId) div.onclick = () => { targetId = p.id; sync(); };
+                
+                // Uniquement le joueur dont c'est le tour peut cliquer sur les autres
+                if(monTour && p.id !== myPeerId && !targetId) {
+                    div.onclick = () => { targetId = p.id; sync(); };
+                }
                 ui.appendChild(div);
             });
 
@@ -207,14 +217,17 @@
                     else { broadcast({ type: 'DRAW', card, deck: currentDeck, to: receiverId }); }
                 }
                 targetId = null; turnIdx = (turnIdx + 1) % players.length; sync();
-            } else { connections[0].send({ type: 'CLIENT_REFUS' }); }
+            } else { 
+                connections[0].send({ type: 'CLIENT_REFUS' }); 
+            }
         }
 
         function donner(card) {
             maMain = maMain.filter(c => c.id !== card.id);
             const msg = { type: 'GET_CARD', card, to: players[turnIdx].id };
-            isHost ? broadcast(msg) : connections[0].send(msg);
-            targetId = null; sync();
+            targetId = null; // Important : On libère la cible
+            if(isHost) broadcast(msg); else connections[0].send(msg);
+            sync();
         }
 
         function checkScore(wasRequested = false) {
@@ -230,7 +243,7 @@
                 }
             }
             if(win) {
-                if(wasRequested) { turnIdx = (turnIdx + 1) % players.length; }
+                if(wasRequested) { /* On peut garder le tour si on veut, ici on finit le tour */ }
                 sync(); checkEnd(); 
             }
         }
@@ -260,7 +273,7 @@
             let me = players.find(p => p.id === myPeerId);
             me.count = maMain.length;
             const d = { type: 'SYNC_GAME', players, turnIdx, deck: currentDeck, targetId };
-            isHost ? broadcast(d) : connections[0].send(d);
+            if(isHost) broadcast(d); else connections[0].send(d);
             updateUI();
         }
 
