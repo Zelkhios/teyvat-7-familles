@@ -3,75 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teyvat 7 Familles - Multi P2P</title>
+    <title>Teyvat 7 Familles - Edition GitHub Multi</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --gold: #d4af37; --card-w: 80px; --card-h: 112px; }
         body { font-family: 'Segoe UI', sans-serif; background: #0b111e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .menu-box { background: rgba(10, 20, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 350px; }
+        .menu-box { background: rgba(10, 20, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); text-align: center; margin-top: 5vh; width: 320px; box-shadow: 0 0 20px black; }
         .hidden { display: none !important; }
         #game-ui { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .status-bar { background: rgba(0,0,0,0.95); width: 100%; padding: 10px; text-align: center; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 100; width: 100%; }
         .players-container { display: flex; justify-content: center; gap: 10px; padding: 10px; width: 100%; flex-wrap: wrap; }
-        .player-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.3); text-align: center; min-width: 130px; cursor: pointer; }
+        .player-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 2px solid rgba(212,175,55,0.3); text-align: center; min-width: 130px; cursor: pointer; transition: 0.3s; }
         .player-card.active { border-color: #2ecc71; background: rgba(46, 204, 113, 0.2); }
         .player-card.targeted { border-color: #e67e22; box-shadow: 0 0 15px #e67e22; transform: scale(1.05); }
-        #btn-refus { background: #e74c3c; color: white; padding: 15px 40px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px; display: none; font-size: 1.1rem; }
-        .board { width: 95%; max-width: 1200px; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 20px; border: 1px dashed rgba(212,175,55,0.2); margin-top: 5px; }
+        #btn-refus { background: #e74c3c; color: white; padding: 15px 40px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px; display: none; font-size: 1.1rem; box-shadow: 0 0 15px red; }
+        .board { width: 95%; max-width: 1200px; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 20px; border: 1px dashed rgba(212,175,55,0.2); margin-top: 5px; }
         .hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
         .card { width: var(--card-w); height: var(--card-h); border-radius: 5px; border: 1px solid var(--gold); background-size: cover; position: relative; cursor: pointer; transition: 0.2s; }
         .card:hover { transform: translateY(-5px); border-color: white; }
         .card-tag { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85); font-size: 0.5rem; text-align: center; padding: 2px 0; pointer-events: none; }
-        button { width: 95%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; background: var(--gold); color: #111; font-weight: bold; cursor: pointer; }
+        button { width: 95%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; background: var(--gold); color: #111; font-weight: bold; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div id="step-1" class="menu-box">
         <h1 style="color:var(--gold)">TEYVAT MULTI</h1>
-        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--gold); background: rgba(255,255,255,0.1); color: white; text-align: center;" type="text" id="pseudo-input" placeholder="Pseudo..." maxlength="12">
+        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; text-align: center;" type="text" id="pseudo-input" placeholder="Pseudo..." maxlength="12">
         <button onclick="validerPseudo()">ENTRER</button>
     </div>
 
     <div id="step-2" class="menu-box hidden">
-        <h2 id="welcome-msg">Bonjour</h2>
-        <button onclick="initHost()">Créer Salon</button>
-        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid var(--gold); background: rgba(255,255,255,0.1); color: white; text-align: center;" type="text" id="join-id-input" placeholder="Code salon">
-        <button onclick="initJoin()">Rejoindre</button>
+        <button onclick="initHost()">CRÉER UN SALON</button>
+        <div style="margin: 15px; opacity: 0.5;">— OU —</div>
+        <input style="width: 85%; padding: 12px; margin: 10px 0; border-radius: 5px; text-align: center;" type="text" id="join-id-input" placeholder="Code salon">
+        <button onclick="initJoin()">REJOINDRE</button>
     </div>
 
     <div id="step-3" class="menu-box hidden">
         <h2>CODE : <span id="my-id-display" style="color:var(--gold); cursor:pointer;" onclick="copierCode()">---</span></h2>
-        <div id="lobby-list" style="margin:20px 0; text-align: left; padding-left: 10%;">
-            <p id="p-row-0">• <span id="p-name-0">...</span> (Hôte)</p>
-            <p id="p-row-1" style="display:none">• <span id="p-name-1">...</span></p>
-            <p id="p-row-2" style="display:none">• <span id="p-name-2">...</span></p>
-            <p id="p-row-3" style="display:none">• <span id="p-name-3">...</span></p>
-        </div>
-        <button id="start-btn" class="hidden" onclick="hostStartGame()">Lancer la partie</button>
+        <div id="lobby-list" style="margin:20px 0; text-align: left; padding-left: 10%;"></div>
+        <button id="start-btn" class="hidden" onclick="hostStartGame()">LANCER LA PARTIE</button>
     </div>
 
     <div id="game-ui" class="hidden">
         <div class="status-bar">
-            <h2 id="turn-indicator">En attente...</h2>
+            <h2 id="turn-indicator">Initialisation...</h2>
             <p style="color:var(--gold)">Pioche : <span id="deck-count">0</span></p>
         </div>
         <div id="players-ui" class="players-container"></div>
-        <button id="btn-refus" onclick="actionRefus()">JE N'AI PAS LA CARTE</button>
+        <button id="btn-refus" onclick="actionRefus()">JE N'AI PAS CETTE CARTE</button>
         <div class="board"><div id="player-hand" class="hand"></div></div>
     </div>
 
     <script>
         const families = {
-            "Mondstadt": ["Venti", "Eula", "Amber", "Lisa", "Diluc", "Jean"],
-            "Liyue": ["Zhongli", "Xiao", "Hu-Tao", "Ganyu", "Shenhe", "Xianyun"],
-            "Inazuma": ["Raiden", "Mizuki", "Ayato", "Ayaka", "Kokomi", "Kazuha"],
-            "Sumeru": ["Nahida", "Alhaitham", "Cyno", "Candace", "Tighnari", "Kaveh"],
-            "Fontaine": ["Furina", "Neuvillette", "Navia", "Lyney", "Lynette", "Clorinde"],
-            "Natlan": ["Mavuika", "Kinich", "Mualani", "Xilonen", "Chasca", "Citlali"],
-            "Nodkrai": ["Columbina", "Ineffa", "Flins", "Nefer", "Aino", "Lauma"],
-            "Khaenriah": ["Kaeya", "Dainsleif", "Rerir", "Albedo", "Arlecchino", "Capitano"],
-            "Astral": ["Skirk", "Asmoday", "Istaroth", "Ronova", "Aether", "Lumine"]
+            "Mondstadt": ["Venti", "Amber", "Diluc", "Jean"],
+            "Liyue": ["Zhongli", "Xiao", "Hu-Tao", "Ganyu"],
+            "Inazuma": ["Raiden", "Ayato", "Ayaka", "Kazuha"]
         };
 
         let monPseudo = "", myPeerId = "", peer = null, connections = [];
@@ -79,7 +68,7 @@
 
         function validerPseudo() {
             const val = document.getElementById('pseudo-input').value.trim();
-            if(val) { monPseudo = val; document.getElementById('p-name-0').innerText = monPseudo; document.getElementById('step-1').style.display = 'none'; document.getElementById('step-2').classList.remove('hidden'); }
+            if(val) { monPseudo = val; document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); }
         }
 
         function copierCode() { navigator.clipboard.writeText(document.getElementById('my-id-display').innerText); alert("Code copié !"); }
@@ -89,7 +78,7 @@
             myPeerId = Math.random().toString(36).substring(2,7).toUpperCase();
             peer = new Peer(myPeerId);
             players = [{ id: myPeerId, name: monPseudo, count: 0, won: [] }];
-            peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); });
+            peer.on('open', (id) => { document.getElementById('my-id-display').innerText = id; document.getElementById('step-2').classList.add('hidden'); document.getElementById('step-3').classList.remove('hidden'); updateLobby(); });
             peer.on('connection', setupConn);
         }
 
@@ -108,50 +97,30 @@
                 conn.send({ type: 'JOIN', name: monPseudo });
 
                 conn.on('data', (data) => {
-                    // LOGIQUE HÔTE : Reçoit les actions des clients et synchronise TOUT LE MONDE
                     if(isHost) {
                         if(data.type === 'JOIN') {
                             players.push({ id: conn.peer, name: data.name, count: 0, won: [] });
-                            updateLobby(); broadcast({ type: 'SYNC_LOBBY', players: players });
+                            updateLobby(); broadcast({ type: 'SYNC_LOBBY', players });
                         }
-                        if(data.type === 'CMD_TARGET') { // Un client cible quelqu'un
-                            targetId = data.targetId;
-                            broadcastState();
-                        }
-                        if(data.type === 'CMD_REFUS') { // Un client clique sur "Pas la carte"
-                            logicRefus();
-                        }
-                        if(data.type === 'CMD_GIVE') { // Un client donne une carte
-                            // On retire 1 au donneur, on ajoute 1 au receveur (l'hôte gère les chiffres)
-                            let donneur = players.find(p => p.id === data.from);
-                            let receveur = players.find(p => p.id === players[turnIdx].id);
-                            donneur.count--;
-                            receveur.count++;
-                            targetId = null;
-                            broadcast({ type: 'RECEIVE_CARD', card: data.card, to: receveur.id });
-                            broadcastState();
-                        }
+                        if(data.type === 'CMD_TARGET') { targetId = data.targetId; syncState(); }
+                        if(data.type === 'CMD_REFUS') { logicRefus(); }
+                        if(data.type === 'CMD_GIVE') { logicGive(data.card, data.from, data.to); }
                     }
-
-                    // LOGIQUE TOUS LES JOUEURS
                     if(data.type === 'SYNC_LOBBY') { players = data.players; updateLobby(); }
                     if(data.type === 'START') { maMain = data.hand; players = data.players; turnIdx = data.turnIdx; currentDeck = data.deck; goGame(); }
                     if(data.type === 'UPDATE') {
                         players = data.players; turnIdx = data.turnIdx; targetId = data.targetId; currentDeck = data.deck;
                         updateUI();
                     }
-                    if(data.type === 'RECEIVE_CARD') {
-                        if(data.to === myPeerId) { maMain.push(data.card); checkScore(); }
-                        updateUI();
-                    }
+                    if(data.type === 'RECEIVE_CARD') { if(data.to === myPeerId) { maMain.push(data.card); updateUI(); } }
                 });
             });
         }
 
         function broadcast(msg) { connections.forEach(c => { if(c.open) c.send(msg); }); }
 
-        function broadcastState() {
-            // L'hôte met à jour ses propres infos avant d'envoyer
+        function syncState() {
+            if(!isHost) return;
             let me = players.find(p => p.id === myPeerId);
             me.count = maMain.length;
             broadcast({ type: 'UPDATE', players, turnIdx, targetId, deck: currentDeck });
@@ -160,52 +129,41 @@
 
         function hostStartGame() {
             let fullDeck = [];
-            let idCounter = 1;
-            for(let f in families) { families[f].forEach(n => { fullDeck.push({id: idCounter++, f, n}); }); }
+            for(let f in families) families[f].forEach(n => fullDeck.push({f, n, id: Math.random()}));
             fullDeck.sort(() => Math.random() - 0.5);
-            
             players.forEach((p, i) => {
-                p.won = [];
                 const hand = fullDeck.splice(0, 6);
                 p.count = hand.length;
                 if(i === 0) maMain = hand;
                 else connections.find(c => c.peer === p.id).send({ type: 'START', hand, players, turnIdx: 0, deck: fullDeck });
             });
-            currentDeck = fullDeck;
-            turnIdx = 0;
-            goGame();
+            currentDeck = fullDeck; turnIdx = 0; goGame(); syncState();
         }
 
         function updateUI() {
             const monTour = players[turnIdx] && players[turnIdx].id === myPeerId;
             document.getElementById('turn-indicator').innerText = monTour ? "À TOI !" : "TOUR DE " + (players[turnIdx] ? players[turnIdx].name.toUpperCase() : "...");
             document.getElementById('deck-count').innerText = currentDeck.length;
-            
-            // Bouton visible SEULEMENT pour la cible
             document.getElementById('btn-refus').style.display = (targetId === myPeerId) ? 'block' : 'none';
 
-            const ui = document.getElementById('players-ui');
-            ui.innerHTML = "";
+            const ui = document.getElementById('players-ui'); ui.innerHTML = "";
             players.forEach(p => {
                 const div = document.createElement('div');
                 div.className = `player-card ${players[turnIdx].id === p.id ? 'active' : ''} ${targetId === p.id ? 'targeted' : ''}`;
-                div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes<br>🏆 ${p.won.length}`;
-                
-                // Si c'est mon tour, je lance la commande de ciblage
+                div.innerHTML = `<b>${p.name}</b><br>${p.count} cartes`;
                 if(monTour && p.id !== myPeerId && !targetId) {
                     div.onclick = () => { 
-                        if(isHost) { targetId = p.id; broadcastState(); }
-                        else { connections[0].send({ type: 'CMD_TARGET', targetId: p.id }); }
+                        if(isHost) { targetId = p.id; syncState(); } 
+                        else connections[0].send({ type: 'CMD_TARGET', targetId: p.id });
                     };
                 }
                 ui.appendChild(div);
             });
 
-            const hand = document.getElementById('player-hand');
-            hand.innerHTML = "";
-            maMain.sort((a,b) => a.f.localeCompare(b.f)).forEach(c => {
+            const hand = document.getElementById('player-hand'); hand.innerHTML = "";
+            maMain.forEach(c => {
                 const card = document.createElement('div'); card.className = "card";
-                card.style.backgroundImage = `url('images/${c.f.toLowerCase()}_${c.n.toLowerCase().replace(" ","-")}.jpg')`;
+                card.style.backgroundImage = `url('images/${c.f.toLowerCase()}_${c.n.toLowerCase()}.jpg')`;
                 card.onclick = () => { if(targetId === myPeerId) actionDonner(c); };
                 card.innerHTML = `<div class="card-tag"><b>${c.f}</b><br>${c.n}</div>`;
                 hand.appendChild(card);
@@ -213,62 +171,38 @@
         }
 
         function actionRefus() {
-            if(isHost) logicRefus();
-            else connections[0].send({ type: 'CMD_REFUS' });
+            if(isHost) logicRefus(); else connections[0].send({ type: 'CMD_REFUS' });
         }
 
-        function logicRefus() { // Exécuté uniquement par l'hôte
+        function logicRefus() {
             if(currentDeck.length > 0) {
                 const card = currentDeck.shift();
-                const receiverId = players[turnIdx].id;
-                if(receiverId === myPeerId) { maMain.push(card); checkScore(); }
-                else { broadcast({ type: 'RECEIVE_CARD', card, to: receiverId }); }
+                const pId = players[turnIdx].id;
+                if(pId === myPeerId) maMain.push(card);
+                else broadcast({ type: 'RECEIVE_CARD', card, to: pId });
             }
-            targetId = null;
-            turnIdx = (turnIdx + 1) % players.length;
-            broadcastState();
+            targetId = null; turnIdx = (turnIdx + 1) % players.length; syncState();
         }
 
         function actionDonner(card) {
             maMain = maMain.filter(c => c.id !== card.id);
-            if(isHost) {
-                let receveur = players.find(p => p.id === players[turnIdx].id);
-                receveur.count++;
-                let moi = players.find(p => p.id === myPeerId); moi.count--;
-                targetId = null;
-                broadcast({ type: 'RECEIVE_CARD', card, to: receveur.id });
-                broadcastState();
-            } else {
-                connections[0].send({ type: 'CMD_GIVE', card, from: myPeerId });
-            }
+            if(isHost) logicGive(card, myPeerId, players[turnIdx].id);
+            else connections[0].send({ type: 'CMD_GIVE', card, from: myPeerId, to: players[turnIdx].id });
             updateUI();
         }
 
-        function checkScore() {
-            let win = false;
-            let me = players.find(p => p.id === myPeerId);
-            for(let f in families) {
-                const hasAll = families[f].every(name => maMain.some(c => c.f === f && c.n === name));
-                if(hasAll && !me.won.includes(f)) {
-                    me.won.push(f);
-                    maMain = maMain.filter(c => c.f !== f);
-                    win = true;
-                }
-            }
-            if(win && !isHost) syncMyScore(); 
-            if(win && isHost) broadcastState();
-        }
-
-        function syncMyScore() { // Pour que le client dise à l'hôte qu'il a gagné une famille
-            let me = players.find(p => p.id === myPeerId);
-            connections[0].send({ type: 'SYNC_STATE', players, turnIdx, targetId });
+        function logicGive(card, fromId, toId) {
+            players.find(p => p.id === fromId).count--;
+            players.find(p => p.id === toId).count++;
+            targetId = null;
+            if(toId === myPeerId) maMain.push(card);
+            else broadcast({ type: 'RECEIVE_CARD', card, to: toId });
+            syncState();
         }
 
         function updateLobby() {
-            players.forEach((p, i) => {
-                const row = document.getElementById(`p-row-${i}`);
-                if(row) { row.style.display = 'block'; document.getElementById(`p-name-${i}`).innerText = p.name; }
-            });
+            const list = document.getElementById('lobby-list'); list.innerHTML = "";
+            players.forEach(p => list.innerHTML += `<p>• ${p.name}</p>`);
             if(isHost) document.getElementById('start-btn').classList.toggle('hidden', players.length < 2);
         }
 
